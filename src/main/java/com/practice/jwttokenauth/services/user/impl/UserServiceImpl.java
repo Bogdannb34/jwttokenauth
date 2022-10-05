@@ -1,5 +1,7 @@
 package com.practice.jwttokenauth.services.user.impl;
 
+import com.practice.jwttokenauth.exceptions.EmailAlreadyRegisterException;
+import com.practice.jwttokenauth.exceptions.RoleNameNotFoundException;
 import com.practice.jwttokenauth.models.user.Role;
 import com.practice.jwttokenauth.models.user.User;
 import com.practice.jwttokenauth.repository.RoleRepository;
@@ -39,18 +41,17 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public void saveOrUpdate(final User user) {
-        Optional<User> optionalUser = getUserRepository().findById(user.getId());
-        if (optionalUser.isEmpty()) {
-            user.setPassword(getPasswordEncoder().encode(user.getPassword()));
-            final Role role = getRoleRepository().findByRoleName("ROLE_ADMIN")
-                    .orElseThrow(() -> new IllegalArgumentException("Role not found!"));
-            user.setRoles(Collections.singleton(role));
-        } else {
-            getUserRepository().findById(user.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("User not found!"));
+    public void register(final User user) {
+        Optional<User> optionalUser = getUserRepository().findUserByEmail(user.getEmail());
+        if (optionalUser.isPresent()) {
+            throw new EmailAlreadyRegisterException(String.format("Email '%s' already in use!", user.getEmail()));
         }
+        user.setPassword(getPasswordEncoder().encode(user.getPassword()));
+        final Role role = getRoleRepository().findByRoleName("ROLE_ADMIN")
+                .orElseThrow(() -> new RoleNameNotFoundException("Role not found!"));
+        user.setRoles(Collections.singleton(role));
 
         getUserRepository().save(user);
+        log.info("User {} register successfully!", user.getFirstName() + " " + user.getLastName());
     }
 }

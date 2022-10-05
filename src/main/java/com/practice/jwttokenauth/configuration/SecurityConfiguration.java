@@ -25,8 +25,10 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
         http
+                .csrf().disable()
                 .authorizeRequests((authorizeRequests) ->
                         authorizeRequests
+                                .antMatchers("/api/auth/**").permitAll()
                                 .anyRequest().authenticated()
                         )
                 .formLogin((formLogin) ->
@@ -34,7 +36,7 @@ public class SecurityConfiguration {
                                 .loginPage("/login")
                                 .usernameParameter("email")
                                 .permitAll()
-                        )
+                )
                 .authenticationProvider(authenticationProvider());
 
         return http.build();
