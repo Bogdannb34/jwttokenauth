@@ -54,4 +54,9 @@ public class UserServiceImpl implements UserService {
         getUserRepository().save(user);
         log.info("User {} register successfully!", user.getFirstName() + " " + user.getLastName());
     }
+
+    @Override
+    public Boolean checkEmailInDB(final String email) {
+        return getUserRepository().existsByEmail(email);
+    }
 }
