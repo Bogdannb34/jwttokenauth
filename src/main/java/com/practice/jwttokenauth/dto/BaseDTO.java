@@ -5,7 +5,6 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class BaseDTO< I extends Serializable> {
-
+public abstract class BaseDTO< I extends Serializable> {
     private I id;
 }
