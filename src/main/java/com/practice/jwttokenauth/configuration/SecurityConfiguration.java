@@ -1,5 +1,6 @@
 package com.practice.jwttokenauth.configuration;
 
+import com.practice.jwttokenauth.constants.Cors;
 import com.practice.jwttokenauth.services.user.UserService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -54,5 +61,18 @@ public class SecurityConfiguration {
     @Bean
     public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        final UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
+        final CorsConfiguration corsConfiguration = new CorsConfiguration();
+        corsConfiguration.setAllowCredentials(true);
+        corsConfiguration.setAllowedOrigins(Collections.singletonList(Cors.ALLOWED_ORIGINS[0]));
+        corsConfiguration.setAllowedHeaders(Arrays.asList(Cors.ALLOWED_HEADERS));
+        corsConfiguration.setExposedHeaders(Arrays.asList(Cors.EXPOSED_HEADERS));
+        corsConfiguration.setAllowedMethods(Arrays.asList(Cors.ALLOWED_METHODS));
+        urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", corsConfiguration);
+        return new CorsFilter(urlBasedCorsConfigurationSource);
     }
 }
