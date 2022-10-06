@@ -2,6 +2,7 @@ package com.practice.jwttokenauth.services.user.impl;
 
 import com.practice.jwttokenauth.exceptions.EmailAlreadyRegisterException;
 import com.practice.jwttokenauth.exceptions.RoleNameNotFoundException;
+import com.practice.jwttokenauth.exceptions.UserNotFoundException;
 import com.practice.jwttokenauth.models.user.Role;
 import com.practice.jwttokenauth.models.user.User;
 import com.practice.jwttokenauth.repository.RoleRepository;
@@ -53,6 +54,14 @@ public class UserServiceImpl implements UserService {
 
         getUserRepository().save(user);
         log.info("User {} register successfully!", user.getFirstName() + " " + user.getLastName());
+    }
+
+    @Override
+    public User findByEmail(final String email) {
+        log.info("Fetching user {}", email);
+        return getUserRepository().findUserByEmail(email)
+                .orElseThrow(() ->
+                        new UserNotFoundException(String.format("User with email: %s not found!", email)));
     }
 
     @Override

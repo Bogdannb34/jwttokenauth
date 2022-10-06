@@ -8,6 +8,8 @@ public interface UserService extends UserDetailsService, BaseService<Long, User>
 
     void register(final User user);
 
+    User findByEmail(final String email);
+
     Boolean checkEmailInDB(final String email);
 
 }

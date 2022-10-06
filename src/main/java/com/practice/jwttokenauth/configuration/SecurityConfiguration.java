@@ -1,6 +1,10 @@
 package com.practice.jwttokenauth.configuration;
 
 import com.practice.jwttokenauth.constants.Cors;
+import com.practice.jwttokenauth.constants.Security;
+import com.practice.jwttokenauth.security.jwt.JwtAccessDeniedHandler;
+import com.practice.jwttokenauth.security.jwt.JwtAuthEntryPoint;
+import com.practice.jwttokenauth.security.jwt.JwtAuthFilter;
 import com.practice.jwttokenauth.services.user.UserService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +17,15 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
 import java.util.Collections;
+
+import static com.practice.jwttokenauth.constants.Security.PUBLIC_URLS;
 
 @Configuration
 @EnableWebSecurity
@@ -28,23 +35,33 @@ public class SecurityConfiguration {
 
     private final UserService userService;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtAccessDeniedHandler accessDeniedHandler;
+    private final JwtAuthEntryPoint authEntryPoint;
+    private final JwtAuthFilter authFilter;
 
     @Bean
     public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
         http
                 .cors().and().csrf().disable()
+                .exceptionHandling((exceptionHandling) ->
+                        exceptionHandling
+                                .accessDeniedHandler(getAccessDeniedHandler())
+                                .authenticationEntryPoint(getAuthEntryPoint())
+                        )
                 .authorizeRequests((authorizeRequests) ->
                         authorizeRequests
-                                .antMatchers("/api/auth/**").permitAll()
+                                .antMatchers(PUBLIC_URLS).permitAll()
                                 .anyRequest().authenticated()
                         )
                 .formLogin((formLogin) ->
                         formLogin
                                 .loginPage("/login")
                                 .usernameParameter("email")
+                                .defaultSuccessUrl("/home")
                                 .permitAll()
                 )
-                .authenticationProvider(authenticationProvider());
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(getAuthFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
