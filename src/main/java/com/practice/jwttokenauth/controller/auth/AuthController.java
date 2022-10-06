@@ -15,12 +15,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -50,9 +50,17 @@ public class AuthController {
                 .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
         final User user = getUserService().findByEmail(loginRequest.getEmail());
         final CustomUserDetails userDetails = CustomUserDetails.build(user);
-        final String jwt = getTokenProvider().generateJwtToken(userDetails);
+        final String accessToken = getTokenProvider().generateJwtToken(userDetails);
+        final String refreshToken = getTokenProvider().generateRefreshToken(userDetails);
         final Collection<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).collect(Collectors.toList());
-        return ResponseEntity.ok(new JwtResponse(userDetails.getUser().getId(), userDetails.getUsername(), jwt, roles));
+        return ResponseEntity.ok(new JwtResponse(
+                userDetails.getUser().getId(), userDetails.getUsername(), accessToken, refreshToken, roles));
+    }
+
+    @GetMapping("/token/refresh")
+    public ResponseEntity<?> refreshToken(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+        getUserService().refreshToken(request, response);
+        return ResponseEntity.noContent().build();
     }
 }

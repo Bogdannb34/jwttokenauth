@@ -25,6 +25,7 @@ import org.springframework.web.filter.CorsFilter;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static com.practice.jwttokenauth.constants.Security.PRIVATE_URLS;
 import static com.practice.jwttokenauth.constants.Security.PUBLIC_URLS;
 
 @Configuration
@@ -51,6 +52,7 @@ public class SecurityConfiguration {
                 .authorizeRequests((authorizeRequests) ->
                         authorizeRequests
                                 .antMatchers(PUBLIC_URLS).permitAll()
+                                .antMatchers(PRIVATE_URLS).hasRole("ADMIN")
                                 .anyRequest().authenticated()
                         )
                 .formLogin((formLogin) ->
